@@ -223,6 +223,7 @@ function render() {
   const selectedLink=list.querySelector(`a[href="#${project.id}"]`);
   selectedLink.classList.add('active');
   selectedLink.setAttribute('aria-current','true');
+  selectedLink.closest('details').open=true;
   demo.innerHTML=`<div class="case-heading"><div><p>${escapeHTML(category.name)}</p><h3 tabindex="-1">${escapeHTML(project.name)}</h3></div>
     <button class="jump-demo" type="button">Jump to demo <span aria-hidden="true">↓</span></button></div>
     <div class="case-meta"><p><strong>Tech stack</strong> ${escapeHTML(project.tech)}</p>${projectTags(project)}</div>
@@ -268,6 +269,8 @@ function fromHash(scroll=true) {
     clearTimeout(stageTimer);
     selected=index;
     render();
+  }else{
+    list.querySelector('[aria-current=true]').closest('details').open=true;
   }
   if(scroll)demo.scrollIntoView({behavior:'instant'});
   return true;
@@ -275,8 +278,10 @@ function fromHash(scroll=true) {
 document.querySelector('.agent-projects').innerHTML=categoryGroups.map(({id,name,projects})=>
   `<li><a href="#category-${id}"><strong>${escapeHTML(name)}</strong><span>${projects.length} demos <span aria-hidden="true">↗</span></span></a></li>`).join('');
 list.innerHTML=categoryGroups.map(({name,projects})=>
-  `<section class="picker-group"><h3>${escapeHTML(name)}</h3><ul>${projects.map(project=>
-    `<li><a class="project-option" href="#${project.id}">${escapeHTML(project.name)}</a></li>`).join('')}</ul></section>`).join('');
+  `<details class="picker-group" name="demo-categories">
+    <summary><span>${escapeHTML(name)}</span><span class="picker-count" aria-hidden="true">${projects.length}</span></summary>
+    <ul>${projects.map(project=>`<li><a class="project-option" href="#${project.id}">${escapeHTML(project.name)}</a></li>`).join('')}</ul>
+  </details>`).join('');
 grid.innerHTML=categoryGroups.map(({id,name,projects})=>
   `<section class="project-category" id="category-${id}" aria-labelledby="category-${id}-title">
     <h3 id="category-${id}-title">${escapeHTML(name)} <small>${projects.length} demos</small></h3>
