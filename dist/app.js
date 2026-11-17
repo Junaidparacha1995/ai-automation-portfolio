@@ -242,7 +242,7 @@ function mountPageMotion() {
       if(!reduceMotion.matches)entry.target.dataset.visible='true';
     }
   },{threshold:.18});
-  document.querySelectorAll('.hero-copy,.hero-agent,.intro,.section-heading,.project-card,.contact-inner')
+  document.querySelectorAll('.hero-shell,.hero-copy,.hero-agent,.intro,.section-heading,.project-card,.contact-inner')
     .forEach(section=>readingObserver.observe(section));
 }
 function fromHash(scroll=true) {
