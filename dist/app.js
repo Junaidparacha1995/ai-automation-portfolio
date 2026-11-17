@@ -12,6 +12,7 @@ const sourceLinks={
 let selected=cases.findIndex(project=>project.id==='crm-automation'),runToken=0,stageTimer;
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)');
 let arrivalObserver;
+let readingObserver;
 
 function settleReadout(element,data=false){
   if(reduceMotion.matches)return;
@@ -201,6 +202,8 @@ function mountExperience(experience) {
 
 function render() {
   disposeNetworks();
+  const oldStory=demo.querySelector('.case-story');
+  if(oldStory)readingObserver?.unobserve(oldStory);
   const project=cases[selected];
   const experience=experiences[project.id];
   const profileId=project.id==='crop-disease'?'crop-preprocess':project.id;
@@ -227,32 +230,20 @@ function render() {
   const target=demo.querySelector('.workbench,.detector-panel');
   target.tabIndex=-1;
   demo.querySelector('.jump-demo').addEventListener('click',()=>focusSection(target));
+  readingObserver?.observe(demo.querySelector('.case-story'));
 }
 
 function mountPageMotion() {
   if(reduceMotion.matches)return;
-  const illustration=document.querySelector('.hero-agent');
-  const visibility=new IntersectionObserver(([entry],observer)=>{
-    if(!entry.isIntersecting)return;
-    illustration.dataset.visible='true';
-    observer.disconnect();
-  });
-  visibility.observe(illustration);
-  const entrance=[{opacity:.72,translate:'0 13px'},{opacity:1,translate:'0 0'}];
-  const headings=[{clipPath:'inset(0 0 60% 0)',opacity:.75},{clipPath:'inset(0)',opacity:1}];
-  const settings={duration:460,easing:'cubic-bezier(.16,1,.3,1)'};
-  const observer=new IntersectionObserver(entries=>{
+  readingObserver=new IntersectionObserver((entries,observer)=>{
     for(const entry of entries){
       if(!entry.isIntersecting)continue;
       observer.unobserve(entry.target);
-      if(!reduceMotion.matches){
-        const title=entry.target.matches('h1,h2,h3');
-        entry.target.animate(title?headings:entrance,settings);
-      }
+      if(!reduceMotion.matches)entry.target.dataset.visible='true';
     }
   },{threshold:.18});
-  document.querySelectorAll('.hero h1,.intro h2,.section-heading h2,.project-card,.contact h2')
-    .forEach(section=>observer.observe(section));
+  document.querySelectorAll('.hero-copy,.hero-agent,.intro,.section-heading,.project-card,.contact-inner')
+    .forEach(section=>readingObserver.observe(section));
 }
 function fromHash(scroll=true) {
   const index=cases.findIndex(item=>location.hash==='#'+item.id);
@@ -286,7 +277,6 @@ document.addEventListener('click',event=>{
   focusSection(heading||section,section);
 });
 window.addEventListener('hashchange',()=>fromHash());
+mountPageMotion();
 if(cases.some(item=>location.hash==='#'+item.id))fromHash();
 else render();
-
-mountPageMotion();
