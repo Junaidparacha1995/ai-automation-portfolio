@@ -10,9 +10,11 @@ const cases = [
   ['airtable-agent','Airtable AI agent','automation','n8n · OpenAI · Airtable',['Schema lookup','Data queries'],'Teams need quick answers about their records without rebuilding filters for every question.','The workflow first needs to identify the right table and fields, then choose a search or aggregation.','The n8n export connects a chat agent to schema and record tools. This demo applies those operations to a small lead table.'],
   ['movie-agent','Movie recommendation','automation','n8n · OpenAI · MongoDB',['Recommendations','Ranking'],'A viewer knows the mood they want but may have no title in mind.','A recommendation needs to turn fuzzy preferences into searchable constraints and explain the match.','The n8n export uses an agent and a MongoDB aggregation tool. Here you can change filters and see how a local catalog produces a ranked result.'],
   ['appointment-automation','Appointment lifecycle','automation','Make.com · GoHighLevel · OpenAI',['Webhooks','Booking workflows'],'A confirmation, a no-show and a completed visit each need a different follow-up.','The workflow needs to branch on booking status and account for feedback after completed visits.','The Make.com blueprint routes status changes to a confirmation, a reschedule and team alert, or AI-assisted feedback and a review request. The browser demo previews these branches using sample events.'],
+  ['executive-digest','Multi-location executive digest','automation','Make.com · GoHighLevel · OpenAI',['KPI reporting','Anomaly detection'],'Managers need to spot which locations slipped without reading separate CRM reports.','Aggregated totals can hide a drop at a single location.','The Make.com blueprint turns CRM contacts and opportunities into an executive summary. The browser demo calculates conversion rates and flags changes with a visible rule.'],
   ['wall-segmentation','Wall segmentation','vision','JavaScript (schematic demo)',['Segmentation','Image & video'],'Separating walls from furniture and openings by hand makes image and video editing slow.','Walls can share colors with other objects, and their visible boundaries change between frames.','The project targets pixel-level wall masks for images and video. Try a room schematic to see how a mask isolates an editable surface.'],
   ['crop-disease','Crop disease detection','vision','DenseNet121 (project) · ONNX Runtime Web (demo)',['Image classification','Plant health'],'Leaf photos can help narrow down what needs a closer inspection.','Visible symptoms can overlap, and lighting can change how the same leaf looks in a photo.','The project uses DenseNet121 for image classification. Explore how resizing and RGB normalization prepare an input, then try photo inference with the browser model.'],
   ['lab-safety','Lab safety detection','vision','Python · YOLOv8 · ONNX Runtime Web',['Object detection','PPE'],'Reviewing images or video manually makes it hard to quickly locate visible safety equipment.','Equipment varies in size and may be partly hidden. Low-confidence detections require review.','The project repository includes a YOLOv8 training notebook. The playable demo runs the third-party SafetyVision model in your browser and overlays its detections.'],
+  ['classifier-uncertainty','Image classifier uncertainty','vision','Python · TensorFlow/Keras · scikit-learn',['Model evaluation','Bootstrap intervals'],'One accuracy number gives little sense of how much a model’s evaluation could vary on another sample.','Small evaluation sets can make apparently precise scores unstable.','The laryngeal-image research notebook compares MobileNet with a Random Forest on CNN features. The browser exercise uses synthetic prediction outcomes to demonstrate bootstrap intervals.'],
   ['reinforcement-learning','Grid learning & CartPole','learning','JavaScript · Canvas',['Q-learning','SARSA','CartPole'],'An agent must learn which actions work through feedback from an environment.','The agent needs to explore, and Q-learning and SARSA use different next-action targets.','This interactive grid illustrates those updates using real calculations. The CartPole demonstration uses a small physics simulation so you can compare two controllers.'],
   ['blackjack-mdp','Blackjack decision model','learning','Python · Gymnasium · NumPy',['Markov decision process','Value functions'],'An agent has to decide whether to draw or stop with incomplete information about the dealer.','An ace can change value, and a draw can improve the hand or push it over 21.','The notebook compares dynamic programming and reinforcement learning on Gymnasium Blackjack. The browser exercise calculates the expected outcomes for hit and stand with an infinite-deck model.']
 ].map(([id,name,category,tech,tags,problem,challenge,approach]) => ({id,name,category,tech,tags,problem,challenge,approach}));
@@ -26,6 +28,8 @@ const deliverables = {
   'reinforcement-learning':'A learned policy you can test on the sample grid, plus a CartPole controller comparison.',
   'crm-automation':'A routed inquiry, a sample CRM record and Drive note, and a Slack draft addressed to the right team.',
   'appointment-automation':'A status-specific SMS draft, with a team alert or review request where the booking calls for one.',
+  'executive-digest':'A sample briefing with lead and win totals, conversion changes by location, and follow-up suggestions.',
+  'classifier-uncertainty':'A calculated accuracy estimate and 95% bootstrap interval for a synthetic evaluation set.',
   'blackjack-mdp':'A comparison of hit and stand values, with dealer probabilities and the chance of busting on the next draw.',
   'lab-safety':'An annotated photo with boxes, equipment labels, and model scores for review.'
 };
@@ -102,7 +106,6 @@ const blackjackExperience = {
     const hand=data.get('hand'), upcard=data.get('dealer');
     const [total,soft]=blackjackHands[hand];
     const scores=evaluateBlackjack(total,soft,upcard==='Ace'?1:Number(upcard));
-    const percent=chance=>`${(chance*100).toFixed(1)}%`;
     const difference=scores.hit-scores.stand;
     const action=Math.abs(difference)<1e-10?'Tie':difference>0?'Hit':'Stand';
     const summary=action==='Tie'?'Hit and stand have the same expected score.':`${action} has the higher expected score for ${hand.toLowerCase()} against ${upcard}.`;
@@ -143,13 +146,83 @@ const leads = [
 ];
 const step = (name, detail, data) => ({name,detail,data});
 const options = (name,label,values) => `<label>${label}<select name="${name}">${values.map(value=>`<option>${escapeHTML(value)}</option>`).join('')}</select></label>`;
+const percent = rate => `${(rate*100).toFixed(1)}%`;
 const rows = list => list.map(item => typeof item === 'string' ? item : JSON.stringify(item)).join('\n');
 const commonWords = new Set('a an the is are can i my how for what and of do are when where to be on does will it in after'.split(' '));
 const keywords = value => [...new Set((value.toLowerCase().match(/[a-z]+/g)||[]).filter(word=>!commonWords.has(word)).map(word=>word.replace(/s$/,'')))];
 
+const digestWeeks = {
+  'Week 1':[['North',80,24],['Central',56,19],['South',72,15]],
+  'Week 2':[['North',90,24],['Central',60,22],['South',83,11]],
+  'Week 3':[['North',92,30],['Central',65,18],['South',75,18]]
+};
+const reportWeeks={'Week 3':'Week 2','Week 2':'Week 1'};
+const digestLocations=['All locations',...digestWeeks['Week 1'].map(([location])=>location)];
+
+const classifierPaths={'MobileNet':.8,'CNN features + Random Forest':.75};
+
+function bootstrapAccuracy(outcomes,resamples) {
+  let seed=24319;
+  const sampleIndex=()=>Math.floor(((seed=(Math.imul(1664525,seed)+1013904223)>>>0)/4294967296)*outcomes.length);
+  const estimates=Array.from({length:resamples},()=>{
+    let correct=0;
+    for(let draw=0;draw<outcomes.length;draw++)correct+=outcomes[sampleIndex()];
+    return correct/outcomes.length;
+  }).sort((a,b)=>a-b);
+  return {lower:estimates[Math.floor(.025*(resamples-1))],upper:estimates[Math.ceil(.975*(resamples-1))]};
+}
+
 const experiences = {
   'appointment-automation':appointmentExperience,
   'blackjack-mdp':blackjackExperience,
+  'executive-digest': {
+    mode:'Sample CRM report · draft only',
+    controls:() => options('week','Reporting period',Object.keys(reportWeeks)) + options('location','Locations',digestLocations),
+    build(data) {
+      const week=data.get('week'), location=data.get('location');
+      const previousWeek=reportWeeks[week];
+      const matchesLocation=([name])=>location==='All locations'||location===name;
+      const reportRows=period=>digestWeeks[period].filter(matchesLocation).map(([location,leads,wins])=>({location,leads,wins}));
+      const current=reportRows(week), previous=reportRows(previousWeek);
+      const comparisons=current.map(({location,leads,wins})=>{
+        const baseline=previous.find(row=>row.location===location);
+        const rate=wins/leads;
+        return {location,rate,change:rate-baseline.wins/baseline.leads};
+      });
+      const leads=current.reduce((total,row)=>total+row.leads,0), wins=current.reduce((total,row)=>total+row.wins,0);
+      const conversion=percent(wins/leads);
+      const flagged=comparisons.filter(row=>row.change<=-.05);
+      const changes=comparisons.map(({location,rate,change})=>({location,conversion:percent(rate),change:`${change>=0?'+':''}${(change*100).toFixed(1)} percentage points`}));
+      const flaggedLocations=flagged.map(row=>row.location);
+      const followUp=flaggedLocations.length?flaggedLocations.map(name=>`Review leads that did not convert in ${name}.`):['Keep monitoring conversion over the next reporting period.'];
+      return [
+        step('Read sample CRM data',`Use ${week} and compare with ${previousWeek}.`,{location,current,previous}),
+        step('Calculate conversion','Divide won opportunities by leads in the same sample cohort.',{leads,wonOpportunities:wins,conversion,byLocation:changes}),
+        step('Flag declines','Flag a location when conversion falls by five percentage points or more.',{flaggedLocations,comparisons:changes}),
+        step('Draft the executive digest',`${week} · ${location}: ${wins} wins from ${leads} leads (${conversion}). ${flaggedLocations.length?`Review ${flaggedLocations.join(', ')}.`:'No locations met the decline rule.'}`,{followUp,delivery:'Draft only'})
+      ];
+    }
+  },
+  'classifier-uncertainty': {
+    mode:'Synthetic evaluation · research explainer',
+    controls:() => options('model','Model pathway',Object.keys(classifierPaths)) + options('size','Evaluation set size',['20','80']),
+    build(data) {
+      const model=data.get('model'), size=Number(data.get('size'));
+      const accuracy=classifierPaths[model], correct=Math.round(size*accuracy), resamples=1000;
+      const outcomes=Array.from({length:size},(_,index)=>Number(index<correct));
+      const {lower,upper}=bootstrapAccuracy(outcomes,resamples);
+      const visual=`<figure class="uncertainty-interval" aria-hidden="true">
+        <div class="uncertainty-track" style="--lower:${lower*100}%;--upper:${upper*100}%;--estimate:${accuracy*100}%"><span></span><i></i></div>
+        <figcaption><span>0%</span><span>Accuracy</span><span>100%</span></figcaption>
+      </figure>`;
+      return [
+        step('Load synthetic predictions','Use generated correct and incorrect outcomes for an evaluation exercise.',{model,predictions:size,correct}),
+        step('Measure observed accuracy',`${correct} of ${size} synthetic predictions are correct.`,{accuracy:percent(accuracy)}),
+        step('Resample the outcomes','Draw a new sample of the same size with replacement and repeat 1,000 times.',{resamples,drawsPerResample:size}),
+        {...step('Read the bootstrap interval',`The central 95% of resampled accuracy estimates span ${percent(lower)} to ${percent(upper)}. Try changing the sample size.`,{observedAccuracy:percent(accuracy),lowerBound:percent(lower),upperBound:percent(upper),data:'Synthetic'}),visual}
+      ];
+    }
+  },
   'movie-agent': {
     mode:'Local catalog demo',
     controls:() => options('genre','What are you in the mood for?',['Sci-fi','Comedy','Adventure']) + options('limit','Maximum runtime',['120','100','90']),

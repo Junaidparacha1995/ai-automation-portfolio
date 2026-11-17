@@ -194,6 +194,11 @@ body { background:var(--portfolio-base); color:var(--portfolio-ink); }
 .neural-rail .inspect-step[aria-pressed=true] b { color:#7b4b38; }
 .neural-rail .inspect-step:not(:disabled):not([aria-pressed=true]):hover { background:#6b4536; }
 .stage-output { margin-top:12px; }
+.uncertainty-interval { margin:12px 0 18px; }
+.uncertainty-track { position:relative; height:8px; border-radius:4px; background:#dacdc1; }
+.uncertainty-track span { position:absolute; inset:0 calc(100% - var(--upper)) 0 var(--lower); border-radius:4px; background:#a05937; }
+.uncertainty-track i { position:absolute; left:var(--estimate); top:50%; width:4px; height:16px; border-radius:2px; background:#422b22; transform:translate(-50%,-50%); }
+.uncertainty-interval figcaption { display:flex; justify-content:space-between; margin-top:7px; color:#604738; font-size:.8rem; }
 .output-fields { margin:0; }
 .output-fields>div { padding:8px 0; border-top:1px solid #c6af9a; }
 .output-fields .output-fields>div:first-child { border:0; }

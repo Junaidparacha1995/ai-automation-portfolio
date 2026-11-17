@@ -9,6 +9,8 @@ const sourceLinks={
   'airtable-agent':workflows+'Airtable/AI%20Agent%20to%20chat%20with%20Airtable%20and%20analyze%20data.json',
   'movie-agent':workflows+'Database_and_Storage/MongoDB%20AI%20Agent%20-%20Intelligent%20Movie%20Recommendations.json',
   'appointment-automation':github+'/10-Make.com-ai-business-automation-blueprints#the-blueprints',
+  'executive-digest':github+'/10-Make.com-ai-business-automation-blueprints#the-blueprints',
+  'classifier-uncertainty':github+'/laryngeal-cnn-uncertainty-quantification',
   'blackjack-mdp':github+'/blackjack-mdp-reinforcement-learning',
   'lab-safety':github+'/yolov8-lab-safety-detection'
 };

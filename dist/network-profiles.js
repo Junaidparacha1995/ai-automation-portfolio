@@ -51,6 +51,26 @@ const workflowDiagrams = {
     ],
     links:[[0,1,1],[1,2,2],[1,3,2],[2,4,3],[3,4,3]]
   },
+  'executive-digest': {
+    title:'Multi-location CRM reporting',
+    stages:['CRM records','Conversion','Decline flags','Digest'],
+    nodes:[
+      node(0,-222,-52,'table','Contacts'),node(0,-222,53,'table','Opportunities',null,12),
+      node(1,-86,-28,'grid','Conversion',null,10),node(2,48,46,'signal','Decline flags',null,14),
+      node(3,220,-16,'document','Report draft',null,20)
+    ],
+    links:[[0,2,1],[1,2,1],[2,3,2],[3,4,3]]
+  },
+  'classifier-uncertainty': {
+    title:'Bootstrap accuracy estimation',
+    stages:['Predictions','Accuracy','Resamples','Interval'],
+    nodes:[
+      node(0,-222,16,'image','Sample outcomes'),node(1,-103,16,'signal','Accuracy',null,10),
+      node(2,30,-60,'grid','Resample',null,16),node(2,30,16,'grid','Resample',null,8),node(2,30,83,'grid','Resample'),
+      node(3,213,16,'sliders','95% interval',null,19)
+    ],
+    links:[[0,1,1],[1,2,2],[1,3,2],[1,4,2],[2,5,3],[3,5,3],[4,5,3]]
+  },
   'airtable-agent': {
     title:'Table query',
     stages:['Request','Schema','Records','Answer'],
