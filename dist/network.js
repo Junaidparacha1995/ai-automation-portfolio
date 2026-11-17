@@ -129,6 +129,7 @@ function initializeNetwork(scene,{persistent=false}={}) {
 
   function chosenBranch() {
     if(profileId==='crm-automation'&&stage>=1)return trace[1]?.data?.team;
+    if(profileId==='appointment-automation'&&stage>=1)return trace[1]?.data?.route;
     if(profileId==='document-qa'&&stage>=3)return trace[3]?.data?.source?.match(/§\d+/)?.[0];
     return undefined;
   }

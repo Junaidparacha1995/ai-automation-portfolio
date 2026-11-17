@@ -29,6 +29,28 @@ const workflowDiagrams = {
     ],
     links:[[0,1,1],[2,3,2],[2,4,2],[2,5,2],[2,6,2],[1,3,2],[1,4,2],[1,5,2],[1,6,2],[3,7,3,'§1'],[4,7,3,'§2'],[5,7,3,'§3'],[6,7,3,'§4']]
   },
+  'appointment-automation': {
+    title:'Appointment follow-up',
+    stages:['Webhook','Booking status','Follow-up','SMS draft'],
+    nodes:[
+      node(0,-221,0,'inbox','Booking event'),node(1,-108,0,'route','Status',null,10),
+      node(2,29,-72,'document','Confirm','Confirm booking',8),
+      node(2,29,0,'signal','Reschedule','Recover missed visit',15),
+      node(2,29,72,'quote','Review','Request a review',6),node(3,209,0,'message','SMS draft',null,16)
+    ],
+    links:[[0,1,1],[1,2,2,'Confirm booking'],[1,3,2,'Recover missed visit'],[1,4,2,'Request a review'],
+      [2,5,3,'Confirm booking'],[3,5,3,'Recover missed visit'],[4,5,3,'Request a review']]
+  },
+  'blackjack-mdp': {
+    title:'Blackjack state and action values',
+    stages:['Game state','Dealer draws','Action values','Decision'],
+    nodes:[
+      node(0,-216,24,'grid','Hand state'),node(1,-90,24,'signal','Dealer draws',null,11),
+      node(2,52,-52,'route','Hit value',null,18),node(2,52,67,'route','Stand value',null,4),
+      node(3,210,24,'list','Compare values',null,15)
+    ],
+    links:[[0,1,1],[1,2,2],[1,3,2],[2,4,3],[3,4,3]]
+  },
   'airtable-agent': {
     title:'Table query',
     stages:['Request','Schema','Records','Answer'],

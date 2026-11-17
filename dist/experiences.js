@@ -1,13 +1,21 @@
+const projectCategories = [
+  {id:'automation',name:'AI agents & automation'},
+  {id:'vision',name:'Computer vision'},
+  {id:'learning',name:'Reinforcement learning'}
+];
+
 const cases = [
-  ['wall-segmentation','Wall segmentation','Computer vision','Separating walls from furniture and openings by hand makes image and video editing slow.','Walls can share colors with other objects, and their visible boundaries change between frames.','The project targets pixel-level wall masks for images and video. Try a room schematic to see how a mask isolates an editable surface.'],
-  ['crop-disease','Crop disease detection','Deep learning','Leaf photos can help narrow down what needs a closer inspection.','Visible symptoms can overlap, and lighting can change how the same leaf looks in a photo.','The project uses DenseNet121 for image classification. Explore a labeled sample and how resizing and RGB normalization prepare a model input.'],
-  ['document-qa','Document Q&A','n8n · OpenAI · RAG','Teams spend time searching long documents for one answer.','An answer needs a source readers can check. Some questions have no answer in the available material.','The project uses retrieval augmented generation. This demo searches a short sample policy, ranks passages and returns an excerpt with its source.'],
-  ['airtable-agent','Airtable AI agent','n8n · OpenAI · Airtable','Teams need quick answers about their records without rebuilding filters for every question.','The workflow first needs to identify the right table and fields, then choose a search or aggregation.','The n8n export connects a chat agent to schema and record tools. This demo applies those operations to a small lead table.'],
-  ['movie-agent','Movie recommendation','n8n · OpenAI · MongoDB','A viewer knows the mood they want but may have no title in mind.','A recommendation needs to turn fuzzy preferences into searchable constraints and explain the match.','The n8n export uses an agent and a MongoDB aggregation tool. Here you can change filters and see how a local catalog produces a ranked result.'],
-  ['reinforcement-learning','Reinforcement learning','Q-learning · SARSA · CartPole','An agent must learn which actions work through feedback from an environment.','The agent needs to explore, and Q-learning and SARSA use different next-action targets.','This interactive grid illustrates those updates using real calculations. The CartPole demonstration uses a small physics simulation so you can compare two controllers.'],
-  ['crm-automation','CRM workflow','OpenAI · CRM · Drive · Slack','An inquiry can get lost when intake, CRM entry, documentation and team notifications happen separately.','Routing depends on the inquiry, and each downstream tool needs different fields.','This sample mirrors the handoff pattern with an intake form, routing rules, a draft CRM record, a Drive note and a Slack preview.'],
-  ['lab-safety','Lab safety detection','YOLOv8 · computer vision','Reviewing images or video manually makes it hard to quickly locate visible safety equipment.','Equipment varies in size and may be partly hidden. Low-confidence detections require review.','The project repository includes a YOLOv8 training notebook. The playable demo runs the third-party SafetyVision model in your browser and overlays its detections.']
-].map(([id,name,tech,problem,challenge,approach]) => ({id,name,tech,problem,challenge,approach}));
+  ['crm-automation','CRM workflow','automation','OpenAI · CRM · Google Drive · Slack',['Lead routing','Draft handoff'],'An inquiry can get lost when intake, CRM entry, documentation and team notifications happen separately.','Routing depends on the inquiry, and each downstream tool needs different fields.','This sample mirrors the handoff pattern with an intake form, routing rules, a draft CRM record, a Drive note and a Slack preview.'],
+  ['document-qa','Document Q&A','automation','n8n · OpenAI',['RAG','Source citations'],'Teams spend time searching long documents for one answer.','An answer needs a source readers can check. Some questions have no answer in the available material.','The project uses retrieval augmented generation. This demo searches a short sample policy, ranks passages and returns an excerpt with its source.'],
+  ['airtable-agent','Airtable AI agent','automation','n8n · OpenAI · Airtable',['Schema lookup','Data queries'],'Teams need quick answers about their records without rebuilding filters for every question.','The workflow first needs to identify the right table and fields, then choose a search or aggregation.','The n8n export connects a chat agent to schema and record tools. This demo applies those operations to a small lead table.'],
+  ['movie-agent','Movie recommendation','automation','n8n · OpenAI · MongoDB',['Recommendations','Ranking'],'A viewer knows the mood they want but may have no title in mind.','A recommendation needs to turn fuzzy preferences into searchable constraints and explain the match.','The n8n export uses an agent and a MongoDB aggregation tool. Here you can change filters and see how a local catalog produces a ranked result.'],
+  ['appointment-automation','Appointment lifecycle','automation','Make.com · GoHighLevel · OpenAI',['Webhooks','Booking workflows'],'A confirmation, a no-show and a completed visit each need a different follow-up.','The workflow needs to branch on booking status and account for feedback after completed visits.','The Make.com blueprint routes status changes to a confirmation, a reschedule and team alert, or AI-assisted feedback and a review request. The browser demo previews these branches using sample events.'],
+  ['wall-segmentation','Wall segmentation','vision','JavaScript (schematic demo)',['Segmentation','Image & video'],'Separating walls from furniture and openings by hand makes image and video editing slow.','Walls can share colors with other objects, and their visible boundaries change between frames.','The project targets pixel-level wall masks for images and video. Try a room schematic to see how a mask isolates an editable surface.'],
+  ['crop-disease','Crop disease detection','vision','DenseNet121 (project) · ONNX Runtime Web (demo)',['Image classification','Plant health'],'Leaf photos can help narrow down what needs a closer inspection.','Visible symptoms can overlap, and lighting can change how the same leaf looks in a photo.','The project uses DenseNet121 for image classification. Explore how resizing and RGB normalization prepare an input, then try photo inference with the browser model.'],
+  ['lab-safety','Lab safety detection','vision','Python · YOLOv8 · ONNX Runtime Web',['Object detection','PPE'],'Reviewing images or video manually makes it hard to quickly locate visible safety equipment.','Equipment varies in size and may be partly hidden. Low-confidence detections require review.','The project repository includes a YOLOv8 training notebook. The playable demo runs the third-party SafetyVision model in your browser and overlays its detections.'],
+  ['reinforcement-learning','Grid learning & CartPole','learning','JavaScript · Canvas',['Q-learning','SARSA','CartPole'],'An agent must learn which actions work through feedback from an environment.','The agent needs to explore, and Q-learning and SARSA use different next-action targets.','This interactive grid illustrates those updates using real calculations. The CartPole demonstration uses a small physics simulation so you can compare two controllers.'],
+  ['blackjack-mdp','Blackjack decision model','learning','Python · Gymnasium · NumPy',['Markov decision process','Value functions'],'An agent has to decide whether to draw or stop with incomplete information about the dealer.','An ace can change value, and a draw can improve the hand or push it over 21.','The notebook compares dynamic programming and reinforcement learning on Gymnasium Blackjack. The browser exercise calculates the expected outcomes for hit and stand with an infinite-deck model.']
+].map(([id,name,category,tech,tags,problem,challenge,approach]) => ({id,name,category,tech,tags,problem,challenge,approach}));
 
 const deliverables = {
   'wall-segmentation':'A reusable wall mask for recoloring or editing images and video. The demo lets you toggle a sample overlay.',
@@ -17,7 +25,94 @@ const deliverables = {
   'movie-agent':'A ranked shortlist that fits the viewer’s genre and time limit, with a reason for the top pick.',
   'reinforcement-learning':'A learned policy you can test on the sample grid, plus a CartPole controller comparison.',
   'crm-automation':'A routed inquiry, a sample CRM record and Drive note, and a Slack draft addressed to the right team.',
+  'appointment-automation':'A status-specific SMS draft, with a team alert or review request where the booking calls for one.',
+  'blackjack-mdp':'A comparison of hit and stand values, with dealer probabilities and the chance of busting on the next draw.',
   'lab-safety':'An annotated photo with boxes, equipment labels, and model scores for review.'
+};
+
+const appointmentEvents = {
+  Confirmed:{route:'Confirm booking',sms:'Hi Jordan, your appointment is confirmed for Tuesday at 10:30 a.m.'},
+  'No-show':{route:'Recover missed visit',sms:'Hi Jordan, we missed you today. Reply to choose another time.',teamAlert:'Offer the customer a new appointment.'},
+  Completed:{route:'Request a review',feedback:'The team answered my questions and everything went smoothly.',sms:'Thanks for visiting, Jordan. Would you share your feedback in a review?'}
+};
+
+const appointmentExperience = {
+  mode:'Sample workflow · drafts only',
+  controls:() => options('status','Appointment status',Object.keys(appointmentEvents)),
+  build(data) {
+    const status=data.get('status');
+    const {route,sms,teamAlert,feedback}=appointmentEvents[status];
+    const followUp=feedback?{sampleFeedback:feedback,sampleSentiment:'Positive'}:teamAlert?{teamAlert}:{appointment:'Tuesday at 10:30 a.m.'};
+    return [
+      step('Receive sample webhook','Read a booking status update.',{appointmentId:'DEMO-104',customer:'Jordan',status}),
+      step('Select a branch',`The ${status.toLowerCase()} status selects ${route.toLowerCase()}.`,{route}),
+      step('Prepare the follow-up',feedback?'Use the preset sentiment example from the completed visit.':teamAlert?'Flag the missed visit for the team.':'Include the appointment time in the confirmation.',followUp),
+      step('Preview the SMS draft',sms,{SMS:sms,...(teamAlert?{teamAlert}:{}),delivery:'Draft only'})
+    ];
+  }
+};
+
+const blackjackDeck=[1,2,3,4,5,6,7,8,9,10,10,10,10];
+const blackjackHands={'Hard 12':[12,false],'Hard 16':[16,false],'Soft 18 (ace + 7)':[18,true],'Hard 20':[20,false]};
+
+function addBlackjackCard(total,soft,card) {
+  total+=card;
+  if(soft&&total>21)return [total-10,false];
+  if(!soft&&card===1&&total<=11)return [total+10,true];
+  return [total,soft];
+}
+
+function evaluateBlackjack(total,soft,upCard) {
+  const dealerMemo=new Map();
+  function dealerOutcomes(dealerTotal,dealerSoft) {
+    const key=`${dealerTotal}/${dealerSoft}`;
+    if(dealerMemo.has(key))return dealerMemo.get(key);
+    const probabilities=Array(6).fill(0); // 17 through 21, then bust
+    if(dealerTotal>=17)probabilities[Math.min(5,dealerTotal-17)]=1;
+    else for(const card of blackjackDeck) {
+      dealerOutcomes(...addBlackjackCard(dealerTotal,dealerSoft,card)).forEach((chance,index)=>{
+        probabilities[index]+=chance/blackjackDeck.length;
+      });
+    }
+    dealerMemo.set(key,probabilities);
+    return probabilities;
+  }
+
+  const dealer=dealerOutcomes(...addBlackjackCard(0,false,upCard));
+  const stand=playerTotal=>dealer[5]+dealer.slice(0,5).reduce((score,chance,index)=>score+chance*Math.sign(playerTotal-index-17),0);
+  const playerMemo=new Map();
+  function hit(playerTotal,playerSoft) {
+    const key=`${playerTotal}/${playerSoft}`;
+    if(playerMemo.has(key))return playerMemo.get(key);
+    const value=blackjackDeck.reduce((score,card)=>{
+      const [nextTotal,nextSoft]=addBlackjackCard(playerTotal,playerSoft,card);
+      return score+(nextTotal>21?-1:Math.max(stand(nextTotal),hit(nextTotal,nextSoft)));
+    },0)/blackjackDeck.length;
+    playerMemo.set(key,value);
+    return value;
+  }
+  const busts=blackjackDeck.filter(card=>addBlackjackCard(total,soft,card)[0]>21).length;
+  return {dealer,stand:stand(total),hit:hit(total,soft),bustChance:busts/blackjackDeck.length};
+}
+
+const blackjackExperience = {
+  mode:'Browser simulation · points only',
+  controls:() => options('hand','Player hand',Object.keys(blackjackHands)) + options('dealer','Dealer upcard',['6','10','2','Ace']),
+  build(data) {
+    const hand=data.get('hand'), upcard=data.get('dealer');
+    const [total,soft]=blackjackHands[hand];
+    const scores=evaluateBlackjack(total,soft,upcard==='Ace'?1:Number(upcard));
+    const percent=chance=>`${(chance*100).toFixed(1)}%`;
+    const difference=scores.hit-scores.stand;
+    const action=Math.abs(difference)<1e-10?'Tie':difference>0?'Hit':'Stand';
+    const summary=action==='Tie'?'Hit and stand have the same expected score.':`${action} has the higher expected score for ${hand.toLowerCase()} against ${upcard}.`;
+    return [
+      step('Read the game state','Use the player total, ace status and visible dealer card.',{hand,usableAce:soft,dealerUpcard:upcard}),
+      step('Model the dealer','Combine possible dealer draws. The dealer stands on 17 or higher.',Object.fromEntries(scores.dealer.map((chance,index)=>[index===5?'Bust':String(17+index),percent(chance)]))),
+      step('Value hit and stand','Count +1 for a win, 0 for a tie and −1 for a loss. After a hit, later decisions use the better action.',{hit:scores.hit.toFixed(3),stand:scores.stand.toFixed(3),bustOnNextDraw:percent(scores.bustChance)}),
+      step('Compare decisions',summary,{higherValueAction:action,expectedHit:scores.hit.toFixed(3),expectedStand:scores.stand.toFixed(3)})
+    ];
+  }
 };
 
 const leadExamples = {
@@ -53,6 +148,8 @@ const commonWords = new Set('a an the is are can i my how for what and of do are
 const keywords = value => [...new Set((value.toLowerCase().match(/[a-z]+/g)||[]).filter(word=>!commonWords.has(word)).map(word=>word.replace(/s$/,'')))];
 
 const experiences = {
+  'appointment-automation':appointmentExperience,
+  'blackjack-mdp':blackjackExperience,
   'movie-agent': {
     mode:'Local catalog demo',
     controls:() => options('genre','What are you in the mood for?',['Sci-fi','Comedy','Adventure']) + options('limit','Maximum runtime',['120','100','90']),

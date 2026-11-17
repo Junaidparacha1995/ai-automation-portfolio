@@ -1,18 +1,25 @@
 const list=document.getElementById('project-list');
 const demo=document.getElementById('demo');
 const grid=document.getElementById('project-grid');
+const categoryGroups=projectCategories.map(category=>({...category,projects:cases.filter(project=>project.category===category.id)}));
 const escapeHTML=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const github='https://github.com/Junaidparacha1995';
 const workflows=github+'/n8n_Advanced_Workflows/blob/main/';
 const sourceLinks={
   'airtable-agent':workflows+'Airtable/AI%20Agent%20to%20chat%20with%20Airtable%20and%20analyze%20data.json',
   'movie-agent':workflows+'Database_and_Storage/MongoDB%20AI%20Agent%20-%20Intelligent%20Movie%20Recommendations.json',
+  'appointment-automation':github+'/10-Make.com-ai-business-automation-blueprints#the-blueprints',
+  'blackjack-mdp':github+'/blackjack-mdp-reinforcement-learning',
   'lab-safety':github+'/yolov8-lab-safety-detection'
 };
 let selected=cases.findIndex(project=>project.id==='crm-automation'),runToken=0,stageTimer;
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)');
 let arrivalObserver;
 let readingObserver;
+
+function projectTags(project) {
+  return `<ul class="project-tags" aria-label="Tags">${project.tags.map(tag=>`<li>${escapeHTML(tag)}</li>`).join('')}</ul>`;
+}
 
 function settleReadout(element,data=false){
   if(reduceMotion.matches)return;
@@ -207,10 +214,16 @@ function render() {
   const project=cases[selected];
   const experience=experiences[project.id];
   const profileId=project.id==='crop-disease'?'crop-preprocess':project.id;
-  document.getElementById('project-count').textContent=`${String(selected+1).padStart(2,'0')} / 08`;
-  list.innerHTML=cases.map((item,index)=>`<a class="project-option ${index===selected?'active':''}" href="#${item.id}" ${index===selected?'aria-current="true"':''}>${item.name}</a>`).join('');
-  demo.innerHTML=`<div class="case-heading"><div><p>${project.tech}</p><h3 tabindex="-1">${project.name}</h3></div>
+  const category=projectCategories.find(group=>group.id===project.category);
+  document.getElementById('project-count').textContent=`${String(selected+1).padStart(2,'0')} / ${cases.length}`;
+  list.querySelector('.active')?.classList.remove('active');
+  list.querySelector('[aria-current]')?.removeAttribute('aria-current');
+  const selectedLink=list.querySelector(`a[href="#${project.id}"]`);
+  selectedLink.classList.add('active');
+  selectedLink.setAttribute('aria-current','true');
+  demo.innerHTML=`<div class="case-heading"><div><p>${escapeHTML(category.name)}</p><h3 tabindex="-1">${escapeHTML(project.name)}</h3></div>
     <button class="jump-demo" type="button">Jump to demo <span aria-hidden="true">↓</span></button></div>
+    <div class="case-meta"><p><strong>Tech stack</strong> ${escapeHTML(project.tech)}</p>${projectTags(project)}</div>
     <dl class="case-story">
       <div><dt>Problem statement</dt><dd>${project.problem}</dd></div>
       <div><dt>How I solved it</dt><dd>${project.approach}</dd><dd class="case-constraint">${project.challenge}</dd></div>
@@ -257,7 +270,20 @@ function fromHash(scroll=true) {
   if(scroll)demo.scrollIntoView({behavior:'instant'});
   return true;
 }
-grid.innerHTML=cases.map(project=>`<article class="project-card"><span class="card-num">${project.tech}</span><h3>${project.name}</h3><p>${project.problem}</p><a href="#${project.id}" aria-label="Try the ${escapeHTML(project.name)} demo">Try the demo <span aria-hidden="true">↗</span></a></article>`).join('');
+document.querySelector('.agent-projects').innerHTML=categoryGroups.map(({id,name,projects})=>
+  `<li><a href="#category-${id}"><strong>${escapeHTML(name)}</strong><span>${projects.length} demos <span aria-hidden="true">↗</span></span></a></li>`).join('');
+list.innerHTML=categoryGroups.map(({name,projects})=>
+  `<section class="picker-group"><h3>${escapeHTML(name)}</h3><ul>${projects.map(project=>
+    `<li><a class="project-option" href="#${project.id}">${escapeHTML(project.name)}</a></li>`).join('')}</ul></section>`).join('');
+grid.innerHTML=categoryGroups.map(({id,name,projects})=>
+  `<section class="project-category" id="category-${id}" aria-labelledby="category-${id}-title">
+    <h3 id="category-${id}-title">${escapeHTML(name)} <small>${projects.length} demos</small></h3>
+    <div class="project-grid">${projects.map(project=>`<article class="project-card">
+      <h4>${escapeHTML(project.name)}</h4><p>${escapeHTML(project.problem)}</p>
+      <p class="card-stack"><strong>Tech stack</strong> ${escapeHTML(project.tech)}</p>${projectTags(project)}
+      <a href="#${project.id}" aria-label="Try the ${escapeHTML(project.name)} demo">Try the demo <span aria-hidden="true">↗</span></a>
+    </article>`).join('')}</div>
+  </section>`).join('');
 document.addEventListener('click',event=>{
   if(event.defaultPrevented||event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
   const link=event.target.closest('a[href^="#"]');
@@ -273,7 +299,7 @@ document.addEventListener('click',event=>{
     focusSection(demo.querySelector('h3'),demo);
     return;
   }
-  const heading=fragment==='#top'?section.querySelector('.brand'):section.querySelector('h2');
+  const heading=fragment==='#top'?section.querySelector('.brand'):section.querySelector('h2,h3');
   focusSection(heading||section,section);
 });
 window.addEventListener('hashchange',()=>fromHash());
