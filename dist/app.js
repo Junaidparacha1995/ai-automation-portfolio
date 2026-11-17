@@ -11,6 +11,7 @@ const sourceLinks={
 };
 let selected=cases.findIndex(project=>project.id==='crm-automation'),runToken=0,stageTimer;
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)');
+let arrivalObserver;
 
 function settleReadout(element,data=false){
   if(reduceMotion.matches)return;
@@ -21,9 +22,24 @@ function settleReadout(element,data=false){
   element.animate(frames,{duration:data?430:210,easing:'cubic-bezier(.18,.76,.28,1)'});
 }
 
-function focusSection(element){
+function focusSection(element,region=element){
+  arrivalObserver?.disconnect();
+  if(!element.matches('a[href],button,input,select,textarea,[tabindex]'))element.tabIndex=-1;
   element.focus({preventScroll:true});
-  element.scrollIntoView({block:'start',behavior:reduceMotion.matches?'instant':'smooth'});
+  region.scrollIntoView({block:'start',behavior:reduceMotion.matches?'instant':'smooth'});
+  if(reduceMotion.matches)return;
+  const heading=element.querySelector('h2,h3,h4')||element;
+  arrivalObserver=new IntersectionObserver(([entry],observer)=>{
+    if(!entry.isIntersecting)return;
+    observer.disconnect();
+    if(reduceMotion.matches)return;
+    heading.getAnimations().forEach(effect=>effect.cancel());
+    heading.animate([
+      {opacity:.78,translate:'0 7px'},
+      {opacity:1,translate:'0 0'}
+    ],{duration:300,easing:'cubic-bezier(.16,1,.3,1)'});
+  },{rootMargin:'-8% 0px -12% 0px'});
+  arrivalObserver.observe(heading);
 }
 
 function mountModelScene(anchor,names) {
@@ -238,40 +254,38 @@ function mountPageMotion() {
   document.querySelectorAll('.hero h1,.intro h2,.section-heading h2,.project-card,.contact h2')
     .forEach(section=>observer.observe(section));
 }
-function fromHash(scroll=true,focus=false) {
+function fromHash(scroll=true) {
   const index=cases.findIndex(item=>location.hash==='#'+item.id);
-  if(index<0)return;
-  runToken++;
-  clearTimeout(stageTimer);
-  selected=index;
-  render();
-  if(!reduceMotion.matches){
-    demo.querySelector('.case-heading').animate(
-      [{opacity:.73,translate:'0 6px'},{opacity:1,translate:'0 0'}],
-      {duration:240,easing:'cubic-bezier(.16,1,.3,1)'});
+  if(index<0)return false;
+  if(index!==selected||!demo.firstElementChild){
+    runToken++;
+    clearTimeout(stageTimer);
+    selected=index;
+    render();
   }
-  if(scroll){
-    if(focus)demo.querySelector('h3').focus({preventScroll:true});
-    demo.scrollIntoView({behavior:'instant'});
-  }
+  if(scroll)demo.scrollIntoView({behavior:'instant'});
+  return true;
 }
 grid.innerHTML=cases.map(project=>`<article class="project-card"><span class="card-num">${project.tech}</span><h3>${project.name}</h3><p>${project.problem}</p><a href="#${project.id}" aria-label="Try the ${escapeHTML(project.name)} demo">Try the demo <span aria-hidden="true">↗</span></a></article>`).join('');
-list.addEventListener('click',event=>{
-  const link=event.target.closest('a');
-  if(!link || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)return;
+document.addEventListener('click',event=>{
+  if(event.defaultPrevented||event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
+  const link=event.target.closest('a[href^="#"]');
+  if(!link||link.target||link.hasAttribute('download'))return;
+  const fragment=link.getAttribute('href');
+  const project=cases.some(item=>'#'+item.id===fragment);
+  const section=project?demo:document.getElementById(fragment.slice(1));
+  if(!section)return;
   event.preventDefault();
-  if(link.hash===location.hash)return;
-  history.pushState(null,'',link.hash);
-  fromHash(false);
-  if(matchMedia('(max-width: 820px)').matches){
-    demo.querySelector('h3').focus({preventScroll:true});
-    demo.scrollIntoView({behavior:reduceMotion.matches?'instant':'smooth'});
-  }else list.querySelector('[aria-current]').focus({preventScroll:true});
+  if(fragment!==location.hash)history.pushState(null,'',fragment);
+  if(project){
+    fromHash(false);
+    focusSection(demo.querySelector('h3'),demo);
+    return;
+  }
+  const heading=fragment==='#top'?section.querySelector('.brand'):section.querySelector('h2');
+  focusSection(heading||section,section);
 });
-grid.addEventListener('click',event=>{
-  if(event.target.closest('a')?.hash===location.hash)demo.scrollIntoView({behavior:'instant'});
-});
-window.addEventListener('hashchange',()=>fromHash(true,true));
+window.addEventListener('hashchange',()=>fromHash());
 if(cases.some(item=>location.hash==='#'+item.id))fromHash();
 else render();
 

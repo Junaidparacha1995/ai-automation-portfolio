@@ -378,3 +378,9 @@ body { background:var(--portfolio-base); color:var(--portfolio-ink); }
   .agent-avatar>span { bottom:4px; }
   .agent-projects { padding:6px 10px 10px; gap:0 8px; }
 }
+#top,#playground,#projects,#contact,#demo { scroll-margin-top:16px; }
+.hero h1:focus-visible,.intro h2:focus-visible,.section-heading h2:focus-visible,.case-heading h3:focus-visible {
+  outline:2px solid #bd643a;
+  outline-offset:5px;
+  border-radius:3px;
+}
