@@ -4,7 +4,7 @@ Run `Junaid Paracha Demos & Project Portfolio.bat` or `node serve.cjs`, then ope
 
 Vercel serves `dist/` as a static site. The portfolio requires no build dependencies, API keys, or environment variables. Each project has a shareable fragment link, such as `#crm-automation`.
 
-The portfolio groups twelve demos into AI agents and automation, computer vision, and reinforcement learning. Each project includes a tech stack, topical tags, and a shareable demo link.
+The portfolio groups twelve demos into AI agents and automation, computer vision, and reinforcement learning. Each project includes a tech stack, topical tags, a shareable demo link, and a GitHub link to its original source or browser demo code.
 
 Movie Recommendation, Airtable, Document Q&A, CRM, Appointment Lifecycle, and the Executive Digest use sample data processed in the browser. The stage inspector shows inputs, decisions, intermediate data, and results. GitHub links point to available workflow exports. Live integrations require the relevant workflow platform and credentials.
 

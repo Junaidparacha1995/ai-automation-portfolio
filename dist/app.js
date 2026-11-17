@@ -5,14 +5,24 @@ const categoryGroups=projectCategories.map(category=>({...category,projects:case
 const escapeHTML=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const github='https://github.com/Junaidparacha1995';
 const workflows=github+'/n8n_Advanced_Workflows/blob/main/';
+const blueprints=github+'/10-Make.com-ai-business-automation-blueprints/blob/main/';
 const sourceLinks={
   'airtable-agent':workflows+'Airtable/AI%20Agent%20to%20chat%20with%20Airtable%20and%20analyze%20data.json',
   'movie-agent':workflows+'Database_and_Storage/MongoDB%20AI%20Agent%20-%20Intelligent%20Movie%20Recommendations.json',
-  'appointment-automation':github+'/10-Make.com-ai-business-automation-blueprints#the-blueprints',
-  'executive-digest':github+'/10-Make.com-ai-business-automation-blueprints#the-blueprints',
+  'appointment-automation':blueprints+'03_appointment_lifecycle_orchestrator.blueprint.json',
+  'executive-digest':blueprints+'10_multi_location_executive_digest.blueprint.json',
   'classifier-uncertainty':github+'/laryngeal-cnn-uncertainty-quantification',
   'blackjack-mdp':github+'/blackjack-mdp-reinforcement-learning',
   'lab-safety':github+'/yolov8-lab-safety-detection'
+};
+// Pin line links to the revision that defines these demo implementations.
+const demoSource=github+'/ai-automation-portfolio/blob/305daf36754eaef309157201df7c3e0c9b3ffebb/dist/';
+const demoSourceLinks={
+  'crm-automation':demoSource+'experiences.js#L272-L293',
+  'document-qa':demoSource+'experiences.js#L256-L271',
+  'wall-segmentation':demoSource+'experiences.js#L295-L311',
+  'crop-disease':demoSource+'leaf.js#L2',
+  'reinforcement-learning':demoSource+'experiences.js#L329-L389'
 };
 let selected=cases.findIndex(project=>project.id==='crm-automation'),runToken=0,stageTimer;
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)');
@@ -21,6 +31,12 @@ let readingObserver;
 
 function projectTags(project) {
   return `<ul class="project-tags" aria-label="Tags">${project.tags.map(tag=>`<li>${escapeHTML(tag)}</li>`).join('')}</ul>`;
+}
+
+function projectSourceLink(project) {
+  const original=sourceLinks[project.id];
+  const label=original?'GitHub source':'Demo code on GitHub';
+  return `<a class="project-source" href="${original||demoSourceLinks[project.id]}" target="_blank" rel="noopener" aria-label="${label} for ${escapeHTML(project.name)}">${label} <span aria-hidden="true">↗</span></a>`;
 }
 
 function settleReadout(element,data=false){
@@ -224,8 +240,8 @@ function render() {
   selectedLink.classList.add('active');
   selectedLink.setAttribute('aria-current','true');
   selectedLink.closest('details').open=true;
-  demo.innerHTML=`<div class="case-heading"><div><p>${escapeHTML(category.name)}</p><h3 tabindex="-1">${escapeHTML(project.name)}</h3></div>
-    <button class="jump-demo" type="button">Jump to demo <span aria-hidden="true">↓</span></button></div>
+  demo.innerHTML=`<div class="case-heading"><div class="case-title"><p>${escapeHTML(category.name)}</p><h3 tabindex="-1">${escapeHTML(project.name)}</h3></div>
+    <div class="case-actions"><button class="jump-demo" type="button">Jump to demo <span aria-hidden="true">↓</span></button>${projectSourceLink(project)}</div></div>
     <div class="case-meta"><p><strong>Tech stack</strong> ${escapeHTML(project.tech)}</p>${projectTags(project)}</div>
     <dl class="case-story">
       <div><dt>Problem statement</dt><dd>${project.problem}</dd></div>
@@ -239,7 +255,7 @@ function render() {
       <div class="workbench-feedback"><p class="workbench-status" role="status">Run a sample to see each step and its output.</p><button class="jump-result" type="button" hidden>View result <span aria-hidden="true">↓</span></button></div>
       <div class="step-detail" tabindex="-1"><h4>How the result is generated</h4><p>After the run, select a step to inspect its data.</p></div>
     </section>`:'<div class="demo-stage"></div><div id="process-view"></div>'}
-    <div class="demo-foot"><span>${experience?'Runs on sample data in your browser':'Image inference on your device'}</span><a href="${sourceLinks[project.id]||github}" target="_blank" rel="noopener">${sourceLinks[project.id]?'View project source':'View GitHub profile'} ↗</a></div>`;
+    <div class="demo-foot"><span>${experience?'Runs on sample data in your browser':'Image inference on your device'}</span></div>`;
   if(experience)mountExperience(experience);
   else mountDetector();
   if(project.id==='crop-disease')mountLeafClassifier();
@@ -288,7 +304,7 @@ grid.innerHTML=categoryGroups.map(({id,name,projects})=>
     <div class="project-grid">${projects.map(project=>`<article class="project-card">
       <h4>${escapeHTML(project.name)}</h4><p>${escapeHTML(project.problem)}</p>
       <p class="card-stack"><strong>Tech stack</strong> ${escapeHTML(project.tech)}</p>${projectTags(project)}
-      <a href="#${project.id}" aria-label="Try the ${escapeHTML(project.name)} demo">Try the demo <span aria-hidden="true">↗</span></a>
+      <div class="card-actions"><a href="#${project.id}" aria-label="Try the ${escapeHTML(project.name)} demo">Try the demo <span aria-hidden="true">↗</span></a>${projectSourceLink(project)}</div>
     </article>`).join('')}</div>
   </section>`).join('');
 document.addEventListener('click',event=>{
