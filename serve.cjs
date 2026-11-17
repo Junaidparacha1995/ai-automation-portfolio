@@ -2,8 +2,10 @@ const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
 const { pipeline } = require('node:stream');
+const { rewrites } = require('./vercel.json');
 
 const root = path.join(__dirname, 'dist');
+const demoRoutes = new Map(rewrites.map(({ source, destination }) => [source, destination]));
 const mimeTypes = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -25,13 +27,21 @@ const server = http.createServer((req, res) => {
   }
 
   let pathname;
+  let url;
   try {
-    pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+    url = new URL(req.url, 'http://localhost');
+    pathname = decodeURIComponent(url.pathname);
   } catch {
     res.writeHead(400);
     return res.end('Invalid URL');
   }
-  const asset = path.resolve(root, '.' + (pathname === '/' ? '/index.html' : pathname));
+  if (pathname.endsWith('/') && demoRoutes.has(pathname.slice(0, -1))) {
+    res.writeHead(308, { Location: pathname.slice(0, -1) + url.search });
+    return res.end();
+  }
+
+  const assetPath = pathname === '/' ? '/index.html' : demoRoutes.get(pathname) ?? pathname;
+  const asset = path.resolve(root, '.' + assetPath);
   if (!asset.startsWith(root + path.sep)) {
     res.writeHead(403);
     return res.end('Forbidden');

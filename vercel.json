@@ -3,5 +3,20 @@
   "framework": null,
   "outputDirectory": "dist",
   "installCommand": "",
-  "buildCommand": ""
+  "buildCommand": "",
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/crm-automation", "destination": "/index.html" },
+    { "source": "/document-qa", "destination": "/index.html" },
+    { "source": "/airtable-agent", "destination": "/index.html" },
+    { "source": "/movie-agent", "destination": "/index.html" },
+    { "source": "/appointment-automation", "destination": "/index.html" },
+    { "source": "/executive-digest", "destination": "/index.html" },
+    { "source": "/wall-segmentation", "destination": "/index.html" },
+    { "source": "/crop-disease", "destination": "/index.html" },
+    { "source": "/lab-safety", "destination": "/index.html" },
+    { "source": "/classifier-uncertainty", "destination": "/index.html" },
+    { "source": "/reinforcement-learning", "destination": "/index.html" },
+    { "source": "/blackjack-mdp", "destination": "/index.html" }
+  ]
 }

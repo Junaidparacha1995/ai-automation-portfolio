@@ -29,6 +29,8 @@ const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)');
 let arrivalObserver;
 let readingObserver;
 
+const projectLink=project=>`${location.protocol==='file:'?'#':'/'}${project.id}`;
+
 function projectTags(project) {
   return `<ul class="project-tags" aria-label="Tags">${project.tags.map(tag=>`<li>${escapeHTML(tag)}</li>`).join('')}</ul>`;
 }
@@ -236,7 +238,7 @@ function render() {
   document.getElementById('project-count').textContent=`${String(selected+1).padStart(2,'0')} / ${cases.length}`;
   list.querySelector('.active')?.classList.remove('active');
   list.querySelector('[aria-current]')?.removeAttribute('aria-current');
-  const selectedLink=list.querySelector(`a[href="#${project.id}"]`);
+  const selectedLink=list.querySelector(`a[href="${projectLink(project)}"]`);
   selectedLink.classList.add('active');
   selectedLink.setAttribute('aria-current','true');
   selectedLink.closest('details').open=true;
@@ -277,8 +279,9 @@ function mountPageMotion() {
   document.querySelectorAll('.hero-shell,.hero-copy,.hero-agent,.intro,.section-heading,.project-card,.contact-inner')
     .forEach(section=>readingObserver.observe(section));
 }
-function fromHash(scroll=true) {
-  const index=cases.findIndex(item=>location.hash==='#'+item.id);
+function fromLocation(scroll=true) {
+  const legacyIndex=cases.findIndex(item=>location.hash==='#'+item.id);
+  const index=legacyIndex>=0?legacyIndex:cases.findIndex(item=>location.pathname==='/'+item.id);
   if(index<0)return false;
   if(index!==selected||!demo.firstElementChild){
     runToken++;
@@ -288,7 +291,7 @@ function fromHash(scroll=true) {
   }else{
     list.querySelector('[aria-current=true]').closest('details').open=true;
   }
-  if(scroll)demo.scrollIntoView({behavior:'instant'});
+  if(scroll&&(!location.hash||legacyIndex>=0))demo.scrollIntoView({behavior:'instant'});
   return true;
 }
 document.querySelector('.agent-projects').innerHTML=categoryGroups.map(({id,name,projects})=>
@@ -296,7 +299,7 @@ document.querySelector('.agent-projects').innerHTML=categoryGroups.map(({id,name
 list.innerHTML=categoryGroups.map(({name,projects})=>
   `<details class="picker-group" name="demo-categories">
     <summary><span>${escapeHTML(name)}</span><span class="picker-count" aria-hidden="true">${projects.length}</span></summary>
-    <ul>${projects.map(project=>`<li><a class="project-option" href="#${project.id}">${escapeHTML(project.name)}</a></li>`).join('')}</ul>
+    <ul>${projects.map(project=>`<li><a class="project-option" data-project-link href="${projectLink(project)}">${escapeHTML(project.name)}</a></li>`).join('')}</ul>
   </details>`).join('');
 grid.innerHTML=categoryGroups.map(({id,name,projects})=>
   `<section class="project-category" id="category-${id}" aria-labelledby="category-${id}-title">
@@ -304,28 +307,29 @@ grid.innerHTML=categoryGroups.map(({id,name,projects})=>
     <div class="project-grid">${projects.map(project=>`<article class="project-card">
       <h4>${escapeHTML(project.name)}</h4><p>${escapeHTML(project.problem)}</p>
       <p class="card-stack"><strong>Tech stack</strong> ${escapeHTML(project.tech)}</p>${projectTags(project)}
-      <div class="card-actions"><a href="#${project.id}" aria-label="Try the ${escapeHTML(project.name)} demo">Try the demo <span aria-hidden="true">↗</span></a>${projectSourceLink(project)}</div>
+      <div class="card-actions"><a data-project-link href="${projectLink(project)}" aria-label="Try the ${escapeHTML(project.name)} demo">Try the demo <span aria-hidden="true">↗</span></a>${projectSourceLink(project)}</div>
     </article>`).join('')}</div>
   </section>`).join('');
 document.addEventListener('click',event=>{
   if(event.defaultPrevented||event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
-  const link=event.target.closest('a[href^="#"]');
+  const link=event.target.closest('a[data-project-link],a[href^="#"]');
   if(!link||link.target||link.hasAttribute('download'))return;
-  const fragment=link.getAttribute('href');
-  const project=cases.some(item=>'#'+item.id===fragment);
-  const section=project?demo:document.getElementById(fragment.slice(1));
+  const href=link.getAttribute('href');
+  const project=link.hasAttribute('data-project-link');
+  const section=project?demo:document.getElementById(href.slice(1));
   if(!section)return;
   event.preventDefault();
-  if(fragment!==location.hash)history.pushState(null,'',fragment);
+  const destination=project||location.protocol==='file:'?href:'/'+href;
+  if(new URL(destination,location.href).href!==location.href)history.pushState(null,'',destination);
   if(project){
-    fromHash(false);
+    fromLocation(false);
     focusSection(demo.querySelector('h3'),demo);
     return;
   }
-  const heading=fragment==='#top'?section.querySelector('.brand'):section.querySelector('h2,h3');
+  const heading=href==='#top'?section.querySelector('.brand'):section.querySelector('h2,h3');
   focusSection(heading||section,section);
 });
-window.addEventListener('hashchange',()=>fromHash());
+window.addEventListener('popstate',()=>fromLocation());
+window.addEventListener('hashchange',()=>fromLocation());
 mountPageMotion();
-if(cases.some(item=>location.hash==='#'+item.id))fromHash();
-else render();
+if(!fromLocation())render();
