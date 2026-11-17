@@ -30,7 +30,7 @@ function focusSection(element,region=element){
   if(reduceMotion.matches)return;
   const heading=element.querySelector('h2,h3,h4')||element;
   arrivalObserver=new IntersectionObserver(([entry],observer)=>{
-    if(!entry.isIntersecting)return;
+    if(!entry.isIntersecting||entry.intersectionRatio<.65)return;
     observer.disconnect();
     if(reduceMotion.matches)return;
     heading.getAnimations().forEach(effect=>effect.cancel());
@@ -38,7 +38,7 @@ function focusSection(element,region=element){
       {opacity:.78,translate:'0 7px'},
       {opacity:1,translate:'0 0'}
     ],{duration:300,easing:'cubic-bezier(.16,1,.3,1)'});
-  },{rootMargin:'-8% 0px -12% 0px'});
+  },{threshold:.65,rootMargin:'0px 0px -12% 0px'});
   arrivalObserver.observe(heading);
 }
 
