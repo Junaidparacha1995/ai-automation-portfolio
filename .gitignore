@@ -1,0 +1,9 @@
+node_modules/
+.openai/
+.impeccable/
+.vercel/
+.env*
+*.log
+*.tar.gz
+outputs/
+dist/automation.js
